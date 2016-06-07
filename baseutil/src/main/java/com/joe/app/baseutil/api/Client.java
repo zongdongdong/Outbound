@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.builder.GetBuilder;
 import com.zhy.http.okhttp.builder.PostFormBuilder;
 
 import java.io.File;
@@ -48,12 +49,16 @@ public class Client {
      * @param params
      * @param callback
      */
-    private void get(String method, Map<String, String> params, OnRequestCallback callback){
-        OkHttpUtils.get()
-                .url(host + method)
-                .params(params)
-                .addHeader(TextUtils.isEmpty(token) ? "" : tokenKey, token)
-                .build()
+    public void get(String method, Map<String, String> params, OnRequestCallback callback){
+        GetBuilder getBuilder = OkHttpUtils.get();
+        getBuilder.url(host + method);
+        if(!TextUtils.isEmpty(token)){
+            getBuilder.addHeader(tokenKey, token);
+        }
+        if(params!=null){
+            getBuilder.params(params);
+        }
+       getBuilder.build()
                 .execute(callback);
     }
 
@@ -64,7 +69,7 @@ public class Client {
      * @param params
      * @param callback
      */
-    private void get(String url, String method, Map<String, String> params, OnRequestCallback callback){
+    public void get(String url, String method, Map<String, String> params, OnRequestCallback callback){
         OkHttpUtils.get()
                 .url(url + method)
                 .params(params)
@@ -78,7 +83,7 @@ public class Client {
      * @param params
      * @param callback
      */
-    private void post(String method, Map<String, String> params, OnRequestCallback callback){
+    public void post(String method, Map<String, String> params, OnRequestCallback callback){
         OkHttpUtils.post()
                 .url(host + method)
                 .params(params)
@@ -94,7 +99,7 @@ public class Client {
      * @param params
      * @param callback
      */
-    private void post(String url, String method, Map<String, String> params, OnRequestCallback callback){
+    public void post(String url, String method, Map<String, String> params, OnRequestCallback callback){
         OkHttpUtils.post()
                 .url(url + method)
                 .params(params)
@@ -108,7 +113,7 @@ public class Client {
      * @param file
      * @param callback
      */
-    private void postFile(String method, File file, OnDownloadCallback callback){
+    public void postFile(String method, File file, OnDownloadCallback callback){
         OkHttpUtils.postFile()
                 .url(host + method)
                 .file(file)
@@ -124,7 +129,7 @@ public class Client {
      * @param fileParams
      * @param callback
      */
-    private void postFile(String method, Map<String, String> params, Map<String, String> fileParams, OnDownloadCallback callback){
+    public void postFile(String method, Map<String, String> params, Map<String, String> fileParams, OnDownloadCallback callback){
         PostFormBuilder postFormBuilder = OkHttpUtils.post();
         for(String key : fileParams.keySet()){
             String filePath = fileParams.get(key);
@@ -145,7 +150,7 @@ public class Client {
      * @param fileUrl
      * @param callback
      */
-    private void downLoadFile(String fileUrl, OnDownloadCallback callback){
+    public void downLoadFile(String fileUrl, OnDownloadCallback callback){
         OkHttpUtils.get()
                 .url(fileUrl)
                 .build()

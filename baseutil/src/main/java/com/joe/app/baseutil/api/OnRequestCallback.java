@@ -28,6 +28,7 @@ public abstract class OnRequestCallback extends Callback<String> {
 
     public OnRequestCallback(Context mContext) {
         this.mContext = mContext;
+        this.isShowProgress = false;
     }
 
     public OnRequestCallback(Context mContext, boolean showLoading, String showText) {
@@ -36,11 +37,11 @@ public abstract class OnRequestCallback extends Callback<String> {
         this.showText = showText;
     }
 
-    public OnRequestCallback(Context mContext, boolean isShowProgress) {
-        this.mContext = mContext;
-        this.showLoading = false;
-        this.isShowProgress = isShowProgress;
-    }
+//    public OnRequestCallback(Context mContext, b) {
+//        this.mContext = mContext;
+//        this.showLoading = false;
+//        this.isShowProgress = isShowProgress;
+//    }
 
     @Override
     public String parseNetworkResponse(Response response) throws IOException
@@ -80,12 +81,30 @@ public abstract class OnRequestCallback extends Callback<String> {
     }
 
     @Override
+    public void onResponse(String response) {
+        if (showLoading && mProgressDialog != null
+                && mProgressDialog.isShowing()) {
+            mProgressDialog.cancel();
+        }
+    }
+
+    @Override
+    public void onError(Request request, Exception e) {
+        if (showLoading && mProgressDialog != null
+                && mProgressDialog.isShowing()) {
+            mProgressDialog.cancel();
+        }
+    }
+
+    @Override
     public void onAfter() {
         super.onAfter();
         if (showLoading && mProgressDialog != null
                 && mProgressDialog.isShowing()) {
             mProgressDialog.cancel();
         }
+
+
 //
 //        if(isShowProgress&&progressDialog!=null&&progressDialog.isShowing()){
 //            progressDialog.cancel();

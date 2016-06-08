@@ -5,9 +5,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/content_bg"
     tools:context="com.joe.app.outbound.ui.activity.MainActivity">
     <include layout="@layout/actionbar_spinner"></include>
-
+    <com.joe.app.outbound.ui.widget.ClearEditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:hint="输入订单号"
+        android:background="@drawable/search_edittext_bg"
+        android:layout_margin="5dp"
+        android:gravity="center_vertical"
+        android:paddingLeft="8dp"
+        android:paddingRight="5dp"
+        />
     <com.jingchen.pulltorefresh.PullToRefreshLayout
         android:id="@+id/pullToRefreshLayout"
         android:layout_width="match_parent"

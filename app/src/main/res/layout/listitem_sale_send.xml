@@ -40,17 +40,16 @@
             android:textColor="@color/black"
             android:layout_centerVertical="true"
             />
-        <TextView
-            android:id="@+id/txtv_color"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="H0005／天蓝"
-            android:textColor="@color/black"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            />
     </RelativeLayout>
-
+    <TextView
+        android:id="@+id/txtv_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="H0005／天蓝"
+        android:textColor="@color/black"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        />
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

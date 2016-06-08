@@ -66,4 +66,12 @@ public class Api {
         mClient.get(GET_SALESEND, null, callback);
     }
 
+    /**
+     * 获取员工信息
+     */
+    public final static String GET_EMPLOYEE = "employee/list";
+    public void getEmployeeInfo(){
+        mClient.get(GET_EMPLOYEE,null,callback);
+    }
+
 }

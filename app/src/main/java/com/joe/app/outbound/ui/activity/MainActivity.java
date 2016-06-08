@@ -18,6 +18,7 @@ import com.joe.app.outbound.data.Api;
 import com.joe.app.outbound.data.listener.OnNetRequest;
 import com.joe.app.outbound.data.model.SaleSendOrderBean;
 import com.joe.app.outbound.data.model.SaleSendOrderResponse;
+import com.joe.app.outbound.ui.adapter.SpinnerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,11 @@ public class MainActivity extends BaseActivity {
     ListView pullListView;
     private SalesendAdapter adapter;
 
+    private SpinnerAdapter spinnerAdapter;
+
 //    private DataProvider mDataProvider;
+
+
 
 
     @Override
@@ -56,6 +61,8 @@ public class MainActivity extends BaseActivity {
         pullListView = (ListView) pullToRefreshLayout.getPullableView();
         adapter = new SalesendAdapter();
         pullListView.setAdapter(adapter);
+        spinnerAdapter = new SpinnerAdapter();
+        spinner.setAdapter(spinnerAdapter);
     }
 
     private void setClickListeners(){
@@ -72,6 +79,21 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    //获取员工信息
+    public void getEmployeeInfo(){
+        Api api = new Api(this, new OnNetRequest(this) {
+            @Override
+            public void onSuccess(String msg) {
+
+            }
+
+            @Override
+            public void onFail() {
+
+            }
+        });
+        api.getEmployeeInfo();
+    }
 
     //获取销售发货单
     public void getSaleSendList(boolean isShowLoading){

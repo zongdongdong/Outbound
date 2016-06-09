@@ -4,6 +4,10 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
+import com.joe.app.baseutil.util.EventBusUtil;
+
+import org.greenrobot.eventbus.EventBus;
+
 /**
  * Created by Joe on 2016/6/4.
  */
@@ -13,6 +17,8 @@ public class BaseFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        EventBusUtil.getInstance().getEventBus().register(this);
+        EventBus.getDefault().register(this);
     }
 
 //    @Override
@@ -31,4 +37,10 @@ public class BaseFragment extends Fragment {
         this.mActivity = (BaseFragmentActivity)context;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+//        EventBusUtil.getInstance().getEventBus().unregister(this);
+        EventBus.getDefault().unregister(this);
+    }
 }

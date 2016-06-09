@@ -13,6 +13,8 @@ import com.squareup.okhttp.Request;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Joe on 2016/6/7.
@@ -74,4 +76,40 @@ public class Api {
         mClient.get(GET_EMPLOYEE,null,callback);
     }
 
+    /**
+     * 根据销售发货单据id获取该订单的所有发货码单的列表
+     */
+    public final static String GET_PACKAGE_LIST = "salesend/listpack";
+    public void getPackageList(String order_id){
+        Map<String,String> params = new HashMap<>();
+        params.put("order_id",order_id);
+        mClient.get(GET_PACKAGE_LIST, params, callback);
+    }
+
+    /**
+     * 扫码出库操作
+     * "order_id" : 1,                 // 单据id
+       "employee_id" : 1,              // 员工id
+       "barcode" : "6912111120373",    // 条码 6913111538101 / 6913111538132 / 6913111538154
+        "bale" : '1#'                   // 包号
+     */
+    public final static String POST_ADD_PACKAGE = "salesend/addpack";
+    public void addPackage(String order_id, String employee_id, String barcode, String bale){
+        Map<String,String> params = new HashMap<>();
+        params.put("order_id",order_id);
+        params.put("employee_id",employee_id);
+        params.put("barcode",barcode);
+        params.put("bale",bale);
+        mClient.post(POST_ADD_PACKAGE,params,callback);
+    }
+
+    /**
+     * 删除出库条码操作
+     */
+    public final static String POST_DELETE_PACKAGE = "salesend/delpack";
+    public void deletePackage(String id){
+        Map<String,String> params = new HashMap<>();
+        params.put("id",id);
+        mClient.post(POST_DELETE_PACKAGE,params,callback);
+    }
 }

@@ -22,6 +22,7 @@ import com.joe.app.baseutil.util.JSONUtils;
 import com.joe.app.baseutil.util.UIHelper;
 import com.joe.app.outbound.R;
 import com.joe.app.outbound.data.Api;
+import com.joe.app.outbound.data.SharedPreference;
 import com.joe.app.outbound.data.listener.OnNetRequest;
 import com.joe.app.outbound.data.model.EmployeeBean;
 import com.joe.app.outbound.data.model.EmployeeResponseBean;
@@ -96,6 +97,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 currentEmployee = (EmployeeBean) spinnerAdapter.getItem(position);
+                SharedPreference.setEmplyeeId(currentEmployee.id);
             }
 
             @Override
@@ -137,6 +139,17 @@ public class MainActivity extends BaseActivity {
                 EmployeeResponseBean employeeResponseBean = JSONUtils.fromJson(msg, EmployeeResponseBean.class);
                 if (employeeResponseBean != null && employeeResponseBean.result != null) {
                     spinnerAdapter.refresh(employeeResponseBean.result);
+                    String employeeId = SharedPreference.getEmplyeeId();
+                    if(TextUtils.isEmpty(employeeId)||employeeId.equals("-1")){
+                        return;
+                    }
+                    for(int i = 0;i<spinnerAdapter.getCount();i++){
+                        EmployeeBean bean = (EmployeeBean)spinnerAdapter.getItem(i);
+                        if(bean.id.equals(employeeId)){
+                            spinner.setSelection(i);
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -261,9 +274,10 @@ public class MainActivity extends BaseActivity {
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results) {
             List<SaleSendOrderBean> list = (List<SaleSendOrderBean>) results.values;
-            if (results.count > 0) {
-                adapter.refresh(list);
-            }
+            adapter.refresh(list);
+//            if (results.count > 0) {
+//                adapter.refresh(list);
+//            }
         }
     }
 

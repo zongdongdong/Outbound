@@ -24,8 +24,9 @@ public abstract class OnNetRequest{
         this.mContext = aContext;
         this.isShowLoading = false;
     }
+    private OnNetRequest(){}
 
-   public abstract void onSuccess(String msg);
+    public abstract void onSuccess(String msg);
 
     public abstract void onFail();
 

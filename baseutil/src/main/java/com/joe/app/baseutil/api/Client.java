@@ -84,12 +84,15 @@ public class Client {
      * @param callback
      */
     public void post(String method, Map<String, String> params, OnRequestCallback callback){
-        OkHttpUtils.post()
-                .url(host + method)
-                .params(params)
-                .addHeader(TextUtils.isEmpty(token) ? "" : tokenKey, token)
-                .build()
-                .execute(callback);
+        PostFormBuilder postFormBuilder = OkHttpUtils.post();
+        postFormBuilder.url(host + method);
+        if(params!=null){
+            postFormBuilder.params(params);
+        }
+        if(!TextUtils.isEmpty(token)){
+            postFormBuilder.addHeader(tokenKey, token);
+        }
+        postFormBuilder.build().execute(callback);
     }
 
     /**
@@ -100,10 +103,12 @@ public class Client {
      * @param callback
      */
     public void post(String url, String method, Map<String, String> params, OnRequestCallback callback){
-        OkHttpUtils.post()
-                .url(url + method)
-                .params(params)
-                .build()
+        PostFormBuilder postFormBuilder = OkHttpUtils.post();
+        postFormBuilder.url(url + method);
+        if(params!=null&&params.size()>0){
+            postFormBuilder.params(params);
+        }
+        postFormBuilder.build()
                 .execute(callback);
     }
 

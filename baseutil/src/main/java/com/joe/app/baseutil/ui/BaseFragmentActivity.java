@@ -5,7 +5,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 
+import com.joe.app.baseutil.Event;
 import com.joe.app.baseutil.R;
+import com.joe.app.baseutil.util.EventBusUtil;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 /**
  * Created by Joe on 2016/6/4.
@@ -16,6 +21,8 @@ public class BaseFragmentActivity extends FragmentActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_base);
+//        EventBusUtil.getInstance().getEventBus().register(this);
+        EventBus.getDefault().register(this);
     }
 
     public void addFragment(BaseFragment baseFragment, boolean isAddBackStack, boolean isAnimation){
@@ -41,6 +48,13 @@ public class BaseFragmentActivity extends FragmentActivity{
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+//        EventBusUtil.getInstance().getEventBus().unregister(this);
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Override
     public void onAttachFragment(Fragment fragment) {
         super.onAttachFragment(fragment);
     }
@@ -48,5 +62,10 @@ public class BaseFragmentActivity extends FragmentActivity{
     @Override
     public void onBackPressed() {
         backPressed();
+    }
+
+    @Subscribe
+    public void OnEvent(Event event){
+
     }
 }

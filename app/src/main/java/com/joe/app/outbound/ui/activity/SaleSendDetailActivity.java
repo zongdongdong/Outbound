@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.joe.app.baseutil.ui.BaseActivity;
 import com.joe.app.baseutil.util.JSONUtils;
+import com.joe.app.baseutil.util.MUtils;
 import com.joe.app.baseutil.util.UIHelper;
 import com.joe.app.outbound.R;
 import com.joe.app.outbound.data.Api;
@@ -79,7 +80,7 @@ public class SaleSendDetailActivity extends BaseActivity {
     private void setViews() {
         adapter = new PackageListAdapter();
         listView.setAdapter(adapter);
-        listView.setEnabled(false);
+//        listView.setEnabled(false);
         listView.setSelected(false);
         listView.setFocusable(false);
         if (mEmployee != null) {
@@ -102,6 +103,7 @@ public class SaleSendDetailActivity extends BaseActivity {
 
     @OnClick(R.id.txtvConfirm)
     public void onConfirmClickListener() {
+        MUtils.hideSoftInput(SaleSendDetailActivity.this);
         addPackage();
     }
 
@@ -334,8 +336,10 @@ public class SaleSendDetailActivity extends BaseActivity {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                etScanCode.setText(event.getResult());
-                addPackage();
+                if(inputDialog==null||!inputDialog.isShowing()){
+                    etScanCode.setText(event.getResult());
+                    addPackage();
+                }
             }
         });
     }

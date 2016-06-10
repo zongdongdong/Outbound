@@ -14,6 +14,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.joe.app.baseutil.util.MUtils;
 import com.joe.app.outbound.R;
 import com.joe.app.outbound.ui.widget.ClearEditText;
 
@@ -38,12 +39,14 @@ public class InputPackageNumDialog extends Dialog {
     }
 
     private View view;
+    private Context mContext;
     ClearEditText etPackageNum;
     TextView txtvConfirm;
     private OnInputListener onInputListener;
     public InputPackageNumDialog(Context context, String currentValue) {
         super(context);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.mContext = context;
         view = LayoutInflater.from(context).inflate(R.layout.dialog_input_package_num, null);
         etPackageNum = (ClearEditText)view.findViewById(R.id.etPackageNum);
         txtvConfirm = (TextView)view.findViewById(R.id.txtvConfirm);
@@ -67,6 +70,7 @@ public class InputPackageNumDialog extends Dialog {
                 if(onInputListener!=null) {
                     onInputListener.input(value);
                 }
+                MUtils.hideSoftInputOfView(mContext,etPackageNum);
                 dismiss();
             }
         });
@@ -77,6 +81,7 @@ public class InputPackageNumDialog extends Dialog {
                 if(onInputListener!=null){
                     onInputListener.dismiss();
                 }
+                MUtils.hideSoftInputOfView(mContext,etPackageNum);
             }
         });
     }

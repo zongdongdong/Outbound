@@ -24,6 +24,7 @@ public class Client {
         if(mClient == null){
             mClient = new Client(host);
         }
+        mClient.refreshHost(host);
         return mClient;
     }
 
@@ -41,6 +42,10 @@ public class Client {
     public void refreshAuthToken(String tokenKey, String token){
         this.tokenKey = tokenKey;
         this.token = token;
+    }
+
+    public void refreshHost(String host){
+        this.host = host;
     }
 
     /**

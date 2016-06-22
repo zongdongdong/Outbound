@@ -13,8 +13,10 @@ import com.squareup.okhttp.Request;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by Joe on 2016/6/7.
@@ -26,7 +28,7 @@ public class Api {
     private Client mClient;
     public Api(Context aContext, final OnNetRequest listener){
         this.mContext = aContext;
-        this.mClient = Client.getInstance(AppConstant.Host);
+        this.mClient = Client.getInstance(SharedPreference.getHost());
         callback = new OnRequestCallback(mContext,listener.isShowLoading(),listener.getLoadingText()) {
             @Override
             public void onResponse(String response) {
@@ -49,7 +51,10 @@ public class Api {
             @Override
             public void onError(Request request, Exception e) {
                 super.onError(request, e);
-                if(e instanceof IOException){
+                if(e instanceof TimeoutException){
+                    UIHelper.showLongToast(mContext,"请求超时");
+                    listener.onFail();
+                }else if(e instanceof ConnectException){
                     UIHelper.showLongToast(mContext,"请求出错，检查网络是否正常");
                     listener.onFail();
                 }else{

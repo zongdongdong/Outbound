@@ -23,6 +23,7 @@ import com.joe.app.baseutil.util.UIHelper;
 import com.joe.app.outbound.R;
 import com.joe.app.outbound.data.Api;
 import com.joe.app.outbound.data.SharedPreference;
+import com.joe.app.outbound.data.event.HostChangeEvent;
 import com.joe.app.outbound.data.listener.OnNetRequest;
 import com.joe.app.outbound.data.model.EmployeeBean;
 import com.joe.app.outbound.data.model.EmployeeResponseBean;
@@ -31,11 +32,14 @@ import com.joe.app.outbound.data.model.SaleSendOrderResponse;
 import com.joe.app.outbound.ui.adapter.SpinnerAdapter;
 import com.joe.app.outbound.ui.widget.ClearEditText;
 
+import org.greenrobot.eventbus.Subscribe;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends BaseActivity {
     @Bind(R.id.txtvActionbarTitle)
@@ -54,6 +58,7 @@ public class MainActivity extends BaseActivity {
     private EmployeeBean currentEmployee;
 
     private List<SaleSendOrderBean> saleSendOrderBeanList;
+    private EasterEggCounter mEasterEggCounter;
 
 //    private DataProvider mDataProvider;
 
@@ -78,6 +83,7 @@ public class MainActivity extends BaseActivity {
         pullListView.setAdapter(adapter);
         spinnerAdapter = new SpinnerAdapter();
         spinner.setAdapter(spinnerAdapter);
+        mEasterEggCounter = new EasterEggCounter();
     }
 
     private void setClickListeners() {
@@ -183,6 +189,21 @@ public class MainActivity extends BaseActivity {
             }
         });
         api.getSaleSendOrderInfoList();
+    }
+
+    @OnClick(R.id.txtvActionbarTitle)
+    public void onTitleClickListener(){
+        mEasterEggCounter.tapped();
+    }
+
+    @Subscribe
+    public void onChangeHostEvent(HostChangeEvent event){
+        UIHelper.post(new Runnable() {
+            @Override
+            public void run() {
+                getSaleSendList(false);
+            }
+        });
     }
 
 
@@ -316,4 +337,50 @@ public class MainActivity extends BaseActivity {
         builder.setNegativeButton("取消",null);
          builder.create().show();
       }
+
+    private class EasterEggCounter {
+        private static final int MAX_TAP_COUNT = 10;
+        private static final long TIME_TO_DISMISS_MILLIS = 2500;
+
+        private int mTapCount = 0;
+        private Thread mDismissThread;
+
+        /**
+         * Method for counting number of taps
+         */
+
+        public synchronized void tapped() {
+            if (mDismissThread == null) {
+                mDismissThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(TIME_TO_DISMISS_MILLIS);
+                            reset();
+                        } catch (InterruptedException ie) {
+                            reset();
+                        }
+                    }
+                });
+
+                mDismissThread.start();
+            }
+
+            mTapCount++;
+            if (mTapCount == MAX_TAP_COUNT) {
+                reset();
+
+                Intent intent = new Intent(MainActivity.this, SettingActivity.class);
+                MainActivity.this.startActivity(intent);
+            }
+        }
+
+        /**
+         * Method for resetting number of taps
+         */
+        private synchronized void reset() {
+            mTapCount = 0;
+            mDismissThread = null;
+        }
+    }
 }

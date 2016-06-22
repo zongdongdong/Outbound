@@ -6,6 +6,7 @@ import android.widget.Button;
 
 import com.joe.app.baseutil.Event;
 import com.joe.app.baseutil.ui.BaseActivity;
+import com.joe.app.baseutil.util.MUtils;
 import com.joe.app.baseutil.util.UIHelper;
 import com.joe.app.outbound.R;
 import com.joe.app.outbound.data.SharedPreference;
@@ -36,6 +37,7 @@ public class SettingActivity extends BaseActivity {
 
     @OnClick(R.id.btnConfirm)
     public void onClick() {
+        MUtils.hideSoftInput(SettingActivity.this);
         String host = etHost.getText().toString();
         if(TextUtils.isEmpty(host)){
             UIHelper.showShortToast(SettingActivity.this,"请输入服务地址");

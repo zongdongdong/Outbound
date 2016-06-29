@@ -31,6 +31,8 @@ import com.joe.app.outbound.ui.widget.ClearEditText;
 
 import org.greenrobot.eventbus.Subscribe;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -225,17 +227,50 @@ public class SaleSendDetailActivity extends BaseActivity {
         List<PackageBean> packageBeanList = new ArrayList<>();
 
         public String getTotalCount(){
-            int volumeCount = 0;//匹数
-            int quantityCount = 0;//数量
+            double volumeCount = 0;//匹数
+            double quantityCount = 0;//数量
             for(PackageBean packageBean:packageBeanList){
                 if(!TextUtils.isEmpty(packageBean.volume)){
-                    volumeCount += Integer.parseInt(packageBean.volume);
+                    volumeCount += Double.parseDouble(packageBean.volume);
                 }
                 if(!TextUtils.isEmpty(packageBean.quantity)){
-                    quantityCount += Integer.parseInt(packageBean.quantity);
+                    quantityCount += Double.parseDouble(packageBean.quantity);
                 }
             }
-            return "[" + volumeCount + ":"+ quantityCount + "]";
+//            DecimalFormat formater = new DecimalFormat("#.00");
+//            String vc = formater.format(volumeCount);
+//            String qc = formater.format(quantityCount);
+//            if(vc.contains(".")){
+//                String[] value1 = vc.split(".");
+//                if(value1[1].equals("00")){
+//                    vc = value1[0];
+//                }
+//            }
+//            if(qc.contains(".")){
+//                String[] value1 = qc.split(".");
+//                if(value1[1].equals("00")){
+//                    qc = value1[0];
+//                }
+//            }
+//            BigDecimal vc = new BigDecimal(volumeCount);
+//            vc = vc.setScale(2,BigDecimal.ROUND_HALF_UP);
+//            BigDecimal qc = new BigDecimal(quantityCount);
+//            qc = vc.setScale(2,BigDecimal.ROUND_HALF_UP);
+            volumeCount=((int)(volumeCount*100))/100;
+            quantityCount=((int)(quantityCount*100))/100;
+            String vcText = "";
+            String qcText = "";
+            if(volumeCount == 0){
+                vcText = "0";
+            }else{
+                vcText = volumeCount+"";
+            }
+            if(quantityCount == 0){
+                qcText = "0";
+            }else{
+                qcText = quantityCount+"";
+            }
+            return "[" + vcText + ":"+ qcText + "]";
         }
 
 

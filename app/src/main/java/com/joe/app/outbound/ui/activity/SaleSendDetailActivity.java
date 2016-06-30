@@ -50,6 +50,8 @@ public class SaleSendDetailActivity extends BaseActivity {
     TextView txtvRight;
     @Bind(R.id.txtv_material)
     TextView txtvMaterial;
+    @Bind(R.id.txtvCompanyName)
+    TextView txtvCompanyName;
     @Bind(R.id.txtv_color)
     TextView txtvColor;
     @Bind(R.id.txtvCount)
@@ -90,6 +92,7 @@ public class SaleSendDetailActivity extends BaseActivity {
         }
         if (saleSendOrder != null) {
             txtvActionbarTitle.setText(saleSendOrder.customcode);
+            txtvCompanyName.setText(saleSendOrder.customer_name);
             txtvMaterial.setText(saleSendOrder.material);
             txtvColor.setText(saleSendOrder.color);
             txtvPlanQuantity.setText(saleSendOrder.plan_quantity);
@@ -256,8 +259,8 @@ public class SaleSendDetailActivity extends BaseActivity {
 //            vc = vc.setScale(2,BigDecimal.ROUND_HALF_UP);
 //            BigDecimal qc = new BigDecimal(quantityCount);
 //            qc = vc.setScale(2,BigDecimal.ROUND_HALF_UP);
-            volumeCount=((int)(volumeCount*100))/100;
-            quantityCount=((int)(quantityCount*100))/100;
+            volumeCount=((int)(volumeCount*100))/100.0;
+            quantityCount=((int)(quantityCount*100))/100.0;
             String vcText = "";
             String qcText = "";
             if(volumeCount == 0){
@@ -270,7 +273,7 @@ public class SaleSendDetailActivity extends BaseActivity {
             }else{
                 qcText = quantityCount+"";
             }
-            return "[" + vcText + ":"+ qcText + "]";
+            return "[ " + vcText + " : "+ qcText + " ]";
         }
 
 

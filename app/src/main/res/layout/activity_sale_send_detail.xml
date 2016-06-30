@@ -44,6 +44,13 @@
             android:layout_marginTop="3dp"
             >
             <TextView
+                android:id="@+id/txtvCompanyName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/black"
+                />
+            <TextView
                 android:id="@+id/txtvCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

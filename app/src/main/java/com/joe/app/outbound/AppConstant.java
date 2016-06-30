@@ -6,4 +6,5 @@ package com.joe.app.outbound;
  */
 public class AppConstant {
     public final static String Host = "http://101.200.178.120/bzms/restful.php/";
+//    public final static String Host = "http://114.55.150.51/bzms/restful.php/";
 }

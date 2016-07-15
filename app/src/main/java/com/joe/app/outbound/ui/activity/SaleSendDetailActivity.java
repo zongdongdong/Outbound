@@ -14,6 +14,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.joe.app.baseutil.Event;
 import com.joe.app.baseutil.ui.BaseActivity;
 import com.joe.app.baseutil.util.JSONUtils;
 import com.joe.app.baseutil.util.MUtils;
@@ -29,6 +30,7 @@ import com.joe.app.outbound.data.model.SaleSendOrderBean;
 import com.joe.app.outbound.ui.dialog.InputPackageNumDialog;
 import com.joe.app.outbound.ui.widget.ClearEditText;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.math.BigDecimal;
@@ -369,8 +371,9 @@ public class SaleSendDetailActivity extends BaseActivity {
         }
     }
 
-    @Subscribe
+    @Subscribe(priority = 2)
     public void OnScanResultEvent(final ScanResultEvent event){
+        EventBus.getDefault().cancelEventDelivery(event);
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {

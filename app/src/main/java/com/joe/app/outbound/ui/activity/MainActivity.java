@@ -5,6 +5,8 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,11 +21,13 @@ import android.widget.TextView;
 import com.jingchen.pulltorefresh.PullToRefreshLayout;
 import com.joe.app.baseutil.ui.BaseActivity;
 import com.joe.app.baseutil.util.JSONUtils;
+import com.joe.app.baseutil.util.MUtils;
 import com.joe.app.baseutil.util.UIHelper;
 import com.joe.app.outbound.R;
 import com.joe.app.outbound.data.Api;
 import com.joe.app.outbound.data.SharedPreference;
 import com.joe.app.outbound.data.event.HostChangeEvent;
+import com.joe.app.outbound.data.event.ScanResultEvent;
 import com.joe.app.outbound.data.listener.OnNetRequest;
 import com.joe.app.outbound.data.model.EmployeeBean;
 import com.joe.app.outbound.data.model.EmployeeResponseBean;
@@ -382,5 +386,16 @@ public class MainActivity extends BaseActivity {
             mTapCount = 0;
             mDismissThread = null;
         }
+    }
+
+    @Subscribe(priority = 1)
+    public void OnScanResultEvent(final ScanResultEvent event){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                MUtils.hideSoftInput(MainActivity.this);
+                etSearch.setText(event.getResult());
+            }
+        });
     }
 }

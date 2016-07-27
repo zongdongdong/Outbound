@@ -28,6 +28,7 @@
         <receiver android:name=".ui.receiver.ScannerResultReceiver" >
             <intent-filter android:priority="999" >
                 <action android:name="android.intent.action.SCANRESULT" />
+                <action android:name="scan.rcv.message"></action>
             </intent-filter>
         </receiver>
 

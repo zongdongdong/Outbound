@@ -275,7 +275,23 @@ public class SaleSendDetailActivity extends BaseActivity {
             }else{
                 qcText = quantityCount+"";
             }
-            return "[ " + vcText + " : "+ qcText + " ]";
+            if(vcText.contains(".")){
+                String[] vcTextArray = vcText.split(".");
+                if(vcTextArray.length == 2){
+                    if(vcTextArray[1].equals("00")||vcTextArray[1].equals("0")){
+                        vcText = vcTextArray[0];
+                    }
+                }
+            }
+            if(qcText.contains(".")){
+                String[] qcTextArray = qcText.split(".");
+                if(qcTextArray.length == 2){
+                    if(qcTextArray[1].equals("00")||qcTextArray[1].equals("0")){
+                        qcText = qcTextArray[0];
+                    }
+                }
+            }
+            return "[ " + vcText + "匹 : "+ qcText + " 公斤]";
         }
 
 

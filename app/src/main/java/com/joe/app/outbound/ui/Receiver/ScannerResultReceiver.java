@@ -16,6 +16,7 @@ import org.greenrobot.eventbus.EventBus;
  */
 public class ScannerResultReceiver extends BroadcastReceiver{
     private static final String RES_ACTION = "android.intent.action.SCANRESULT";
+    private final static String SCAN_ACTION = "scan.rcv.message";//device2
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -37,6 +38,12 @@ public class ScannerResultReceiver extends BroadcastReceiver{
 //                }
 //                scanner.scan_start();
 //            }
+        }else if(intent.getAction().equals(SCAN_ACTION)){
+            byte[] barocode = intent.getByteArrayExtra("barocode");
+            int barocodelen = intent.getIntExtra("length", 0);
+            byte temp = intent.getByteExtra("barcodeType", (byte) 0);
+            String barcodeStr = new String(barocode, 0, barocodelen);
+            EventBus.getDefault().post(new ScanResultEvent(barcodeStr.replace("*","")));
         }
     }
 }

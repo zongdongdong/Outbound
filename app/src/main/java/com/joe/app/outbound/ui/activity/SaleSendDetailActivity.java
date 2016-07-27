@@ -232,57 +232,38 @@ public class SaleSendDetailActivity extends BaseActivity {
         List<PackageBean> packageBeanList = new ArrayList<>();
 
         public String getTotalCount(){
-            double volumeCount = 0;//匹数
+            int volumeCount = 0;//匹数
             double quantityCount = 0;//数量
             for(PackageBean packageBean:packageBeanList){
                 if(!TextUtils.isEmpty(packageBean.volume)){
-                    volumeCount += Double.parseDouble(packageBean.volume);
+                    volumeCount += Integer.parseInt(packageBean.volume);
                 }
                 if(!TextUtils.isEmpty(packageBean.quantity)){
                     quantityCount += Double.parseDouble(packageBean.quantity);
                 }
             }
-//            DecimalFormat formater = new DecimalFormat("#.00");
-//            String vc = formater.format(volumeCount);
-//            String qc = formater.format(quantityCount);
-//            if(vc.contains(".")){
-//                String[] value1 = vc.split(".");
-//                if(value1[1].equals("00")){
-//                    vc = value1[0];
-//                }
-//            }
-//            if(qc.contains(".")){
-//                String[] value1 = qc.split(".");
-//                if(value1[1].equals("00")){
-//                    qc = value1[0];
-//                }
-//            }
-//            BigDecimal vc = new BigDecimal(volumeCount);
-//            vc = vc.setScale(2,BigDecimal.ROUND_HALF_UP);
-//            BigDecimal qc = new BigDecimal(quantityCount);
-//            qc = vc.setScale(2,BigDecimal.ROUND_HALF_UP);
-            volumeCount=((int)(volumeCount*100))/100.0;
+//            volumeCount=((int)(volumeCount*100))/100.0;
             quantityCount=((int)(quantityCount*100))/100.0;
-            String vcText = "";
+//            String vcText = "";
             String qcText = "";
-            if(volumeCount == 0){
-                vcText = "0";
-            }else{
-                vcText = volumeCount+"";
-            }
+//            if(volumeCount == 0){
+//                vcText = "0";
+//            }else{
+//                vcText = volumeCount+"";
+//            }
             if(quantityCount == 0){
                 qcText = "0";
             }else{
                 qcText = quantityCount+"";
             }
-            if(vcText.contains(".")){
-                String[] vcTextArray = vcText.split(".");
-                if(vcTextArray.length == 2){
-                    if(vcTextArray[1].equals("00")||vcTextArray[1].equals("0")){
-                        vcText = vcTextArray[0];
-                    }
-                }
-            }
+//            if(vcText.contains(".")){
+//                String[] vcTextArray = vcText.split(".");
+//                if(vcTextArray.length == 2){
+//                    if(vcTextArray[1].equals("00")||vcTextArray[1].equals("0")){
+//                        vcText = vcTextArray[0];
+//                    }
+//                }
+//            }
             if(qcText.contains(".")){
                 String[] qcTextArray = qcText.split(".");
                 if(qcTextArray.length == 2){
@@ -291,7 +272,7 @@ public class SaleSendDetailActivity extends BaseActivity {
                     }
                 }
             }
-            return "[ " + vcText + "匹 : "+ qcText + " 公斤]";
+            return "[ " + volumeCount + "匹 : "+ qcText + " 公斤]";
         }
 
 

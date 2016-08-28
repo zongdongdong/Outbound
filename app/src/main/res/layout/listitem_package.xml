@@ -4,8 +4,8 @@
     android:layout_height="wrap_content">
     <TextView
         android:id="@+id/txtvDelete"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:background="@mipmap/icon_delete"
         android:layout_gravity="right"
         android:layout_margin="5dp"
@@ -17,33 +17,21 @@
         android:padding="10dp"
         android:layout_margin="5dp"
         >
-        <TextView
-            android:id="@+id/txtv_barcode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:weightSum="3"
+            android:weightSum="2"
             android:orientation="horizontal"
             android:layout_marginTop="5dp"
             >
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_weight="0.9"
                 android:orientation="horizontal"
                 >
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:text="包号:"
-                    />
-                <TextView
-                    android:id="@+id/txtv_bale"
+                    android:id="@+id/txtvBarCode"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
@@ -53,27 +41,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="horizontal"
-                >
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:text="匹数:"
-                    />
-                <TextView
-                    android:id="@+id/txtv_volume"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:text=""
-                    />
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_weight="1.1"
                 android:orientation="horizontal"
                 >
                 <TextView
@@ -83,7 +51,54 @@
                     android:text="数量:"
                     />
                 <TextView
-                    android:id="@+id/txtv_quantity"
+                    android:id="@+id/txtvQuantity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="2"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp"
+            >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.9"
+                android:orientation="horizontal"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="产品:"
+                    />
+                <TextView
+                    android:id="@+id/txtvMaterial"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text=""
+                    />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.1"
+                android:orientation="horizontal"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="颜色:"
+                    />
+                <TextView
+                    android:id="@+id/txtvColor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
@@ -94,14 +109,14 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:weightSum="3"
+            android:weightSum="2"
             android:orientation="horizontal"
             android:layout_marginTop="5dp"
             >
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_weight="0.9"
                 android:orientation="horizontal"
                 >
                 <TextView
@@ -111,7 +126,7 @@
                     android:text="卷号:"
                     />
                 <TextView
-                    android:id="@+id/txtv_reel"
+                    android:id="@+id/txtvVolume"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
@@ -121,37 +136,17 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_weight="1.1"
                 android:orientation="horizontal"
                 >
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
-                    android:text="缸号:"
-                    />
+                    android:text="工艺:"
+                    android:id="@+id/textView" />
                 <TextView
-                    android:id="@+id/txtv_lot"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:text=""
-                    />
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="horizontal"
-                >
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/black"
-                    android:text="等级:"
-                    />
-                <TextView
-                    android:id="@+id/txtv_grade"
+                    android:id="@+id/txtvCraft"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
@@ -160,4 +155,10 @@
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/view_line"
+        android:layout_gravity="bottom"
+        ></View>
 </FrameLayout>

@@ -1,18 +1,16 @@
 package com.joe.app.outbound.ui.activity;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.Filter;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -21,22 +19,22 @@ import android.widget.TextView;
 import com.jingchen.pulltorefresh.PullToRefreshLayout;
 import com.joe.app.baseutil.ui.BaseActivity;
 import com.joe.app.baseutil.util.JSONUtils;
-import com.joe.app.baseutil.util.MUtils;
 import com.joe.app.baseutil.util.UIHelper;
 import com.joe.app.outbound.R;
 import com.joe.app.outbound.data.Api;
 import com.joe.app.outbound.data.SharedPreference;
 import com.joe.app.outbound.data.event.HostChangeEvent;
-import com.joe.app.outbound.data.event.ScanResultEvent;
 import com.joe.app.outbound.data.listener.OnNetRequest;
 import com.joe.app.outbound.data.model.EmployeeBean;
 import com.joe.app.outbound.data.model.EmployeeResponseBean;
+import com.joe.app.outbound.data.model.RetailOrderBean;
 import com.joe.app.outbound.data.model.SaleSendOrderBean;
 import com.joe.app.outbound.data.model.SaleSendOrderResponse;
 import com.joe.app.outbound.ui.adapter.SpinnerAdapter;
-import com.joe.app.outbound.ui.widget.ClearEditText;
 
 import org.greenrobot.eventbus.Subscribe;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,15 +52,19 @@ public class MainActivity extends BaseActivity {
     PullToRefreshLayout pullToRefreshLayout;
 
     ListView pullListView;
-    @Bind(R.id.etSearch)
-    ClearEditText etSearch;
-    private SalesendAdapter adapter;
+    @Bind(R.id.btnSelectOrder)
+    Button btnSelectOrder;
+    @Bind(R.id.btnAddNewOrder)
+    Button btnAddNewOrder;
+    private RetailOrderAdapter adapter;
 
     private SpinnerAdapter spinnerAdapter;
     private EmployeeBean currentEmployee;
 
-    private List<SaleSendOrderBean> saleSendOrderBeanList;
+    private List<RetailOrderBean.Data> retailOrderList;
     private EasterEggCounter mEasterEggCounter;
+
+    private String currentEmployeeId;
 
 //    private DataProvider mDataProvider;
 
@@ -75,15 +77,18 @@ public class MainActivity extends BaseActivity {
 //        mDataProvider = DataProvider.getInstance();
         setViews();
         setClickListeners();
-        getSaleSendList(true);
         getEmployeeInfo();
     }
 
     private void setViews() {
-        txtvActionbarTitle.setText("出库扫码");
+        txtvActionbarTitle.setText("零售扫码");
+        btnAddNewOrder.setEnabled(false);
+        btnSelectOrder.setEnabled(false);
+
+
         pullToRefreshLayout.setPullUpEnable(false);
         pullListView = (ListView) pullToRefreshLayout.getPullableView();
-        adapter = new SalesendAdapter();
+        adapter = new RetailOrderAdapter();
         pullListView.setAdapter(adapter);
         spinnerAdapter = new SpinnerAdapter();
         spinner.setAdapter(spinnerAdapter);
@@ -94,7 +99,7 @@ public class MainActivity extends BaseActivity {
         pullToRefreshLayout.setOnPullListener(new PullToRefreshLayout.OnPullListener() {
             @Override
             public void onRefresh(PullToRefreshLayout pullToRefreshLayout) {
-                getSaleSendList(false);
+                getRetailOrderListWithEmployeeId(currentEmployeeId, false);
             }
 
             @Override
@@ -108,6 +113,15 @@ public class MainActivity extends BaseActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 currentEmployee = (EmployeeBean) spinnerAdapter.getItem(position);
                 SharedPreference.setEmplyeeId(currentEmployee.id);
+                currentEmployeeId = currentEmployee.id;
+                if (currentEmployee.id.equals("-1")) {
+                    btnAddNewOrder.setEnabled(false);
+                    btnSelectOrder.setEnabled(false);
+                } else {
+                    btnAddNewOrder.setEnabled(true);
+                    btnSelectOrder.setEnabled(true);
+                }
+                getRetailOrderListWithEmployeeId(currentEmployeeId, true);
             }
 
             @Override
@@ -122,41 +136,83 @@ public class MainActivity extends BaseActivity {
                 if (currentEmployee == null || currentEmployee.id.equals("-1")) {
                     UIHelper.showShortToast(MainActivity.this, "请选择员工");
                 } else {
-                    SaleSendOrderBean saleSendOrderBean = (SaleSendOrderBean) adapter.getItem(position);
+                    RetailOrderBean.Data data = (RetailOrderBean.Data) adapter.getItem(position);
                     Intent intent = new Intent(MainActivity.this, SaleSendDetailActivity.class);
                     Bundle bundle = new Bundle();
                     bundle.putSerializable(EmployeeBean.class.getSimpleName(), currentEmployee);
-                    bundle.putSerializable(SaleSendOrderBean.class.getSimpleName(), saleSendOrderBean);
+                    bundle.putSerializable(RetailOrderBean.class.getSimpleName(), data);
                     intent.putExtras(bundle);
                     startActivity(intent);
                 }
             }
         });
-
-        etSearch.setOnInputChange(new ClearEditText.OnInputChange() {
+        /**
+         * 选择客户新增零售单
+         */
+        btnSelectOrder.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onAfterTextChange() {
-                adapter.getFilter().filter(etSearch.getText().toString().trim());
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SelectRetailCustomerActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable(EmployeeBean.class.getSimpleName(), currentEmployee);
+                intent.putExtras(bundle);
+                startActivity(intent);
+            }
+        });
+
+        /**
+         * 快捷新增，直接call api获取零售客户信息
+         */
+        btnAddNewOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Api api = new Api(MainActivity.this, new OnNetRequest(MainActivity.this, true, "正在新增...") {
+                    @Override
+                    public void onSuccess(String msg) {
+                        try {
+                            JSONObject jsonObject = new JSONObject(msg);
+                            RetailOrderBean.Data data = JSONUtils.fromJson(jsonObject.optString("result"), RetailOrderBean.Data.class);
+                            Intent intent = new Intent(MainActivity.this, SaleSendDetailActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable(EmployeeBean.class.getSimpleName(), currentEmployee);
+                            bundle.putSerializable(RetailOrderBean.class.getSimpleName(), data);
+                            intent.putExtras(bundle);
+                            startActivity(intent);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onFail() {
+
+                    }
+                });
+                api.addQuickRetailOrder(currentEmployeeId);
             }
         });
     }
 
     //获取员工信息
     public void getEmployeeInfo() {
-        Api api = new Api(this, new OnNetRequest(this) {
+        Api api = new Api(this, new OnNetRequest(this, true, "正在加载...") {
             @Override
             public void onSuccess(String msg) {
                 EmployeeResponseBean employeeResponseBean = JSONUtils.fromJson(msg, EmployeeResponseBean.class);
                 if (employeeResponseBean != null && employeeResponseBean.result != null) {
                     spinnerAdapter.refresh(employeeResponseBean.result);
                     String employeeId = SharedPreference.getEmplyeeId();
-                    if(TextUtils.isEmpty(employeeId)||employeeId.equals("-1")){
+                    if (TextUtils.isEmpty(employeeId) || employeeId.equals("-1")) {
                         return;
                     }
-                    for(int i = 0;i<spinnerAdapter.getCount();i++){
-                        EmployeeBean bean = (EmployeeBean)spinnerAdapter.getItem(i);
-                        if(bean.id.equals(employeeId)){
+                    for (int i = 0; i < spinnerAdapter.getCount(); i++) {
+                        EmployeeBean bean = (EmployeeBean) spinnerAdapter.getItem(i);
+                        if (bean.id.equals(employeeId)) {
                             spinner.setSelection(i);
+                            btnAddNewOrder.setEnabled(true);
+                            btnSelectOrder.setEnabled(true);
+                            currentEmployeeId = bean.id;
+                            getRetailOrderListWithEmployeeId(currentEmployeeId, false);
                             break;
                         }
                     }
@@ -171,58 +227,96 @@ public class MainActivity extends BaseActivity {
         api.getEmployeeInfo();
     }
 
-    //获取销售发货单
-    public void getSaleSendList(boolean isShowLoading) {
-        Api api = new Api(this, new OnNetRequest(this, isShowLoading, "正在加载...") {
+    /**
+     * 获取零售单列表
+     *
+     * @param employeeId
+     */
+    private void getRetailOrderListWithEmployeeId(String employeeId, boolean isShowing) {
+        if (TextUtils.isEmpty(employeeId) || "-1".equals(employeeId)) {
+            return;
+        }
+        Api api = new Api(this, new OnNetRequest(this, isShowing, "正在加载...") {
             @Override
             public void onSuccess(String msg) {
-                SaleSendOrderResponse response = JSONUtils.fromJson(msg, SaleSendOrderResponse.class);
-                if (response != null && response.result != null) {
-                    if (response.result.size() > 0) {
-                        saleSendOrderBeanList = response.result;
-                    }
-                    adapter.refresh(saleSendOrderBeanList);
+                RetailOrderBean retailOrderBean = JSONUtils.fromJson(msg, RetailOrderBean.class);
+                if (retailOrderBean != null && retailOrderBean.result != null) {
+                    retailOrderList = retailOrderBean.result;
+                    adapter.refresh(retailOrderList);
                     pullToRefreshLayout.refreshFinish(PullToRefreshLayout.SUCCEED);
                 }
             }
 
             @Override
             public void onFail() {
-                adapter.refresh(saleSendOrderBeanList);
+                adapter.refresh(retailOrderList);
                 pullToRefreshLayout.refreshFinish(PullToRefreshLayout.FAIL);
             }
         });
-        api.getSaleSendOrderInfoList();
+        api.getRetailOrderList(employeeId);
+    }
+
+    public void delRetail(String id, final int position) {
+        Api api = new Api(this, new OnNetRequest(this, true, "正在删除...") {
+            @Override
+            public void onSuccess(String msg) {
+                UIHelper.showShortToast(MainActivity.this, "删除成功");
+//                RetailOrderBean.Data retailOrderBean = JSONUtils.fromJson(msg, RetailOrderBean.Data.class);
+//                if (retailOrderBean != null && retailOrderBean.result != null) {
+//                    retailOrderList = retailOrderBean.result;
+//                    adapter.refresh(retailOrderList);
+//                }
+                adapter.del(position);
+            }
+
+            @Override
+            public void onFail() {
+
+            }
+        });
+        api.delRetail(id);
     }
 
     @OnClick(R.id.txtvActionbarTitle)
-    public void onTitleClickListener(){
+    public void onTitleClickListener() {
         mEasterEggCounter.tapped();
     }
 
-    @Subscribe
-    public void onChangeHostEvent(HostChangeEvent event){
-        UIHelper.post(new Runnable() {
-            @Override
-            public void run() {
-                getSaleSendList(false);
-            }
-        });
+//    @Subscribe
+//    public void onChangeHostEvent(HostChangeEvent event) {
+//        UIHelper.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                getRetailOrderListWithEmployeeId(currentEmployeeId, false);
+//            }
+//        });
+//    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getRetailOrderListWithEmployeeId(currentEmployeeId, false);
     }
 
-
-    class SalesendAdapter extends BaseAdapter {
+    class RetailOrderAdapter extends BaseAdapter {
         private Filter filter;
 
-        List<SaleSendOrderBean> listData = new ArrayList<>();
+        List<RetailOrderBean.Data> listData = new ArrayList<>();
 
-        public void refresh(List<SaleSendOrderBean> ls) {
+        public void refresh(List<RetailOrderBean.Data> ls) {
             if (ls == null) {
                 listData = new ArrayList<>();
             } else {
                 listData = ls;
             }
             notifyDataSetChanged();
+        }
+
+        public void del(int position) {
+            if (position < listData.size()) {
+                listData.remove(position);
+                notifyDataSetChanged();
+            }
         }
 
         @Override
@@ -240,91 +334,97 @@ public class MainActivity extends BaseActivity {
             return position;
         }
 
-        public Filter getFilter() {
-            if (filter == null) {
-                filter = new SaleSendOrderFilter();
-            }
-            return filter;
-        }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, ViewGroup parent) {
             ViewHolder viewHolder;
             if (convertView == null) {
-                convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.listitem_sale_send, null);
+                convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.listitem_retail_order, null);
                 viewHolder = new ViewHolder(convertView);
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
-            SaleSendOrderBean bean = listData.get(position);
-            viewHolder.txtvCustomcode.setText(bean.customcode);
-            viewHolder.txtvCustomerName.setText(bean.customer_name);
-            viewHolder.txtvMaterial.setText(bean.material);
-            if (TextUtils.isEmpty(bean.craft)) {
-                viewHolder.txtvColor.setText(bean.color);
-            } else {
-                viewHolder.txtvColor.setText(bean.color + "[" + bean.craft + "]");
-            }
-            viewHolder.txtvBilldate.setText(bean.billdate);
-            viewHolder.txtvPlanQuantity.setText(bean.plan_quantity);
+            final RetailOrderBean.Data data = listData.get(position);
+            viewHolder.txtvCode.setText(data.code);
+            viewHolder.txtvBilldate.setText(data.billdate);
+            viewHolder.txtvCustomerName.setText(data.customer_name);
+            viewHolder.txtvQuantityHtml.setText(data.quantity_string);
+            viewHolder.txtvDel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final String id = data.id;
+                    String name = data.customer_name;
+                    String barCode = data.code;
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage("是否确认删除此零售单\n" + name + "\n" + barCode + "?");
+                    builder.setTitle("提示");
+                    builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            delRetail(id, position);
+                            dialog.dismiss();
+                        }
+                    });
+                    builder.setNegativeButton("取消", null);
+                    builder.create().show();
+                }
+            });
             return convertView;
         }
     }
 
-    class SaleSendOrderFilter extends Filter {
-        @Override
-        protected FilterResults performFiltering(CharSequence prefix) {
-            FilterResults filterResults = new FilterResults();
-            if (prefix == null || prefix.length() == 0 || saleSendOrderBeanList == null || saleSendOrderBeanList.size() == 0) {
-                ArrayList<SaleSendOrderBean> l = new ArrayList<>(saleSendOrderBeanList);
-                filterResults.values = l;
-                filterResults.count = l.size();
-            } else {
-                String prefixString = prefix.toString().toLowerCase();
-                final List<SaleSendOrderBean> list = new ArrayList<>(saleSendOrderBeanList);
-                final List<SaleSendOrderBean> newList = new ArrayList<>();
-                for (int i = 0; i < list.size(); i++) {
-                    String id = list.get(i).customcode.toString().trim();
-                    if (id.contains(prefixString)) {
-                        newList.add(list.get(i));
-                    }
-                }
-                filterResults.values = newList;
-                filterResults.count = newList.size();
-            }
-            return filterResults;
-        }
-
-        @Override
-        protected void publishResults(CharSequence constraint, FilterResults results) {
-            List<SaleSendOrderBean> list = (List<SaleSendOrderBean>) results.values;
-            adapter.refresh(list);
-//            if (results.count > 0) {
-//                adapter.refresh(list);
-//            }
-        }
-    }
-
-
     static class ViewHolder {
-        @Bind(R.id.txtv_customcode)
-        TextView txtvCustomcode;
-        @Bind(R.id.txtv_customer_name)
+        @Bind(R.id.txtvDelete)
+        TextView txtvDel;
+        @Bind(R.id.txtvCode)
+        TextView txtvCode;
+        @Bind(R.id.txtvCustomerName)
         TextView txtvCustomerName;
-        @Bind(R.id.txtv_material)
-        TextView txtvMaterial;
-        @Bind(R.id.txtv_color)
-        TextView txtvColor;
-        @Bind(R.id.txtv_plan_quantity)
-        TextView txtvPlanQuantity;
-        @Bind(R.id.txtv_billdate)
+        @Bind(R.id.txtvQuantityHtml)
+        TextView txtvQuantityHtml;
+        @Bind(R.id.txtvBilldate)
         TextView txtvBilldate;
 
         ViewHolder(View view) {
             ButterKnife.bind(this, view);
         }
     }
+
+//    class SaleSendOrderFilter extends Filter {
+//        @Override
+//        protected FilterResults performFiltering(CharSequence prefix) {
+//            FilterResults filterResults = new FilterResults();
+//            if (prefix == null || prefix.length() == 0 || saleSendOrderBeanList == null || saleSendOrderBeanList.size() == 0) {
+//                ArrayList<SaleSendOrderBean> l = new ArrayList<>(saleSendOrderBeanList);
+//                filterResults.values = l;
+//                filterResults.count = l.size();
+//            } else {
+//                String prefixString = prefix.toString().toLowerCase();
+//                final List<SaleSendOrderBean> list = new ArrayList<>(saleSendOrderBeanList);
+//                final List<SaleSendOrderBean> newList = new ArrayList<>();
+//                for (int i = 0; i < list.size(); i++) {
+//                    String id = list.get(i).customcode.toString().trim();
+//                    if (id.contains(prefixString)) {
+//                        newList.add(list.get(i));
+//                    }
+//                }
+//                filterResults.values = newList;
+//                filterResults.count = newList.size();
+//            }
+//            return filterResults;
+//        }
+//
+//        @Override
+//        protected void publishResults(CharSequence constraint, FilterResults results) {
+//            List<SaleSendOrderBean> list = (List<SaleSendOrderBean>) results.values;
+//            adapter.refresh(list);
+////            if (results.count > 0) {
+////                adapter.refresh(list);
+////            }
+//        }
+//    }
+
 
     @Override
     public void onBackPressed() {
@@ -338,9 +438,9 @@ public class MainActivity extends BaseActivity {
                 MainActivity.this.finish();
             }
         });
-        builder.setNegativeButton("取消",null);
-         builder.create().show();
-      }
+        builder.setNegativeButton("取消", null);
+        builder.create().show();
+    }
 
     private class EasterEggCounter {
         private static final int MAX_TAP_COUNT = 10;
@@ -388,14 +488,14 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    @Subscribe(priority = 1)
-    public void OnScanResultEvent(final ScanResultEvent event){
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                MUtils.hideSoftInput(MainActivity.this);
-                etSearch.setText(event.getResult());
-            }
-        });
-    }
+//    @Subscribe(priority = 1)
+//    public void OnScanResultEvent(final ScanResultEvent event) {
+//        new Handler(Looper.getMainLooper()).post(new Runnable() {
+//            @Override
+//            public void run() {
+//                MUtils.hideSoftInput(MainActivity.this);
+//                etSearch.setText(event.getResult());
+//            }
+//        });
+//    }
 }

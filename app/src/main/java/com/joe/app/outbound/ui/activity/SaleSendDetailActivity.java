@@ -9,12 +9,11 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.joe.app.baseutil.Event;
 import com.joe.app.baseutil.ui.BaseActivity;
 import com.joe.app.baseutil.util.JSONUtils;
 import com.joe.app.baseutil.util.MUtils;
@@ -24,9 +23,8 @@ import com.joe.app.outbound.data.Api;
 import com.joe.app.outbound.data.event.ScanResultEvent;
 import com.joe.app.outbound.data.listener.OnNetRequest;
 import com.joe.app.outbound.data.model.EmployeeBean;
-import com.joe.app.outbound.data.model.PackageBean;
-import com.joe.app.outbound.data.model.PackageResponseBean;
-import com.joe.app.outbound.data.model.SaleSendOrderBean;
+import com.joe.app.outbound.data.model.RetailOrderBean;
+import com.joe.app.outbound.data.model.RetailOrderPackBean;
 import com.joe.app.outbound.ui.dialog.InputPackageNumDialog;
 import com.joe.app.outbound.ui.widget.ClearEditText;
 
@@ -34,7 +32,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,32 +41,32 @@ import butterknife.OnClick;
 
 public class SaleSendDetailActivity extends BaseActivity {
 
-    @Bind(R.id.txtvLeft)
-    TextView txtvLeft;
     @Bind(R.id.txtvActionbarTitle)
     TextView txtvActionbarTitle;
     @Bind(R.id.txtvRight)
     TextView txtvRight;
-    @Bind(R.id.txtv_material)
-    TextView txtvMaterial;
-    @Bind(R.id.txtvCompanyName)
-    TextView txtvCompanyName;
-    @Bind(R.id.txtv_color)
-    TextView txtvColor;
+    @Bind(R.id.txtvCustomerName)
+    TextView txtvCustomerName;
     @Bind(R.id.txtvCount)
     TextView txtvCount;
-    @Bind(R.id.txtv_plan_quantity)
-    TextView txtvPlanQuantity;
-    @Bind(R.id.txtvPackageNum)
-    TextView txtvPackageNum;
     @Bind(R.id.etScanCode)
     ClearEditText etScanCode;
     @Bind(R.id.listView)
     ListView listView;
+    @Bind(R.id.txtvCheckImage)
+    TextView txtvCheckImage;//整卷是否选中图片
+    @Bind(R.id.txtvAllWeight)
+    TextView txtvAllWeight;
+    @Bind(R.id.txtvConfirm)
+    TextView txtvConfirm;
+    @Bind(R.id.btnSubmit)
+    Button btnSubmit;
     private EmployeeBean mEmployee;
-    private SaleSendOrderBean saleSendOrder;
+    private RetailOrderBean.Data mRetailOrder;
     private InputPackageNumDialog inputDialog;
     private PackageListAdapter adapter;
+
+    private boolean isFullVolume = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +75,7 @@ public class SaleSendDetailActivity extends BaseActivity {
         ButterKnife.bind(this);
         if (getIntent() != null) {
             mEmployee = (EmployeeBean) getIntent().getSerializableExtra(EmployeeBean.class.getSimpleName());
-            saleSendOrder = (SaleSendOrderBean) getIntent().getSerializableExtra(SaleSendOrderBean.class.getSimpleName());
+            mRetailOrder = (RetailOrderBean.Data) getIntent().getSerializableExtra(RetailOrderBean.class.getSimpleName());
         }
         setViews();
     }
@@ -92,14 +89,12 @@ public class SaleSendDetailActivity extends BaseActivity {
         if (mEmployee != null) {
             txtvRight.setText(mEmployee.name);
         }
-        if (saleSendOrder != null) {
-            txtvActionbarTitle.setText(saleSendOrder.customcode);
-            txtvCompanyName.setText(saleSendOrder.customer_name);
-            txtvMaterial.setText(saleSendOrder.material);
-            txtvColor.setText(saleSendOrder.color);
-            txtvPlanQuantity.setText(saleSendOrder.plan_quantity);
-            txtvCount.setText(adapter.getTotalCount());
-            getPackageList(saleSendOrder.id);
+        if (mRetailOrder != null) {
+            txtvActionbarTitle.setText(mRetailOrder.code);
+            txtvCustomerName.setText(mRetailOrder.customer_name);
+//            txtvColor.setText(saleSendOrder.color);
+//            txtvCount.setText(adapter.getTotalCount());
+            getPackageList(mRetailOrder.id);
         }
     }
 
@@ -111,86 +106,116 @@ public class SaleSendDetailActivity extends BaseActivity {
     @OnClick(R.id.txtvConfirm)
     public void onConfirmClickListener() {
         MUtils.hideSoftInput(SaleSendDetailActivity.this);
-        addPackage();
+        addPackage(null);
     }
 
-    @OnClick(R.id.txtvPackageNum)
-    public void onPackageNumClick() {
-        String value = txtvPackageNum.getText().toString().trim();
-        inputDialog = new InputPackageNumDialog(SaleSendDetailActivity.this, value);
-        inputDialog.show();
-        inputDialog.setOnInputListener(new InputPackageNumDialog.OnInputListener() {
+    @OnClick(R.id.btnSubmit)
+    public void onSubmitClickListener(){
+        if(adapter.getCount() == 0){
+            UIHelper.showLongToast(this, "该零售单无码单，无法提交审核");
+            return;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("是否确认审核此零售单?");
+        builder.setTitle("提示");
+        builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
             @Override
-            public void input(String value) {
-                txtvPackageNum.setText(value);
-            }
-
-            @Override
-            public void dismiss() {
-                requestScanFocus();
+            public void onClick(DialogInterface dialog, int which) {
+                submitRetailOrder();
+                dialog.dismiss();
             }
         });
+        builder.setNegativeButton("取消", null);
+        builder.create().show();
+
+    }
+
+    @OnClick(R.id.llFullVolume)
+    public void onFullVolumeClickListener() {
+        isFullVolume = !isFullVolume;
+        if (isFullVolume) {
+            txtvCheckImage.setBackgroundResource(R.mipmap.icon_check_checked);
+        } else {
+            txtvCheckImage.setBackgroundResource(R.mipmap.icon_check_normal);
+        }
     }
 
     //添加出库单
-    public void addPackage(){
-        String bale = txtvPackageNum.getText().toString().trim();
-//        if(TextUtils.isEmpty(bale)){
-//            UIHelper.showLongToast(this,"请输入包号");
-//            return;
-//        }
+    public void addPackage(String quantity) {
         String barcode = etScanCode.getText().toString().trim();
         if(TextUtils.isEmpty(barcode)){
             UIHelper.showLongToast(this,"请输入条码");
             return;
         }
-        Api api = new Api(this, new OnNetRequest(this,true,"请稍等...") {
+
+        if(!isFullVolume && TextUtils.isEmpty(quantity)){
+            inputDialog = new InputPackageNumDialog(SaleSendDetailActivity.this, "");
+            inputDialog.show();
+            inputDialog.setOnInputListener(new InputPackageNumDialog.OnInputListener() {
+                @Override
+                public void input(String value) {
+                    addPackage(value);
+                }
+
+                @Override
+                public void dismiss() {
+                    requestScanFocus();
+                }
+            });
+            return;
+        }
+
+        Api api = new Api(this, new OnNetRequest(this, true, "请稍等...") {
             @Override
             public void onSuccess(String msg) {
-                PackageResponseBean responseBean = JSONUtils.fromJson(msg, PackageResponseBean.class);
+                RetailOrderPackBean responseBean = JSONUtils.fromJson(msg, RetailOrderPackBean.class);
                 if (responseBean != null && responseBean.result != null) {
                     if (responseBean.result.size() == 0) {
-                        UIHelper.showShortToast(SaleSendDetailActivity.this, "该订单下无发货码单");
+                        UIHelper.showShortToast(SaleSendDetailActivity.this, "该零售单下无码单");
                     }
                     UIHelper.showShortToast(SaleSendDetailActivity.this, "出库成功");
                     adapter.refresh(responseBean.result);
                 } else {
-                    UIHelper.showShortToast(SaleSendDetailActivity.this, "该订单下无发货码单");
+                    UIHelper.showShortToast(SaleSendDetailActivity.this, "该零售单下无码单");
                 }
-                txtvCount.setText(adapter.getTotalCount());
+                txtvAllWeight.setText(adapter.getAllWeight());
+                txtvCount.setText(adapter.getAllVolumeAndQuantity());
                 etScanCode.setText("");
             }
 
             @Override
             public void onFail() {
-                txtvCount.setText(adapter.getTotalCount());
+                txtvAllWeight.setText(adapter.getAllWeight());
+                txtvCount.setText(adapter.getAllVolumeAndQuantity());
                 etScanCode.setText("");
             }
         });
-        api.addPackage(saleSendOrder.id, mEmployee.id, barcode, bale);
+        api.addPackage(mRetailOrder.id, isFullVolume ? "1" : "0", quantity, barcode);
     }
 
     //删除出库单
-    public void deletePackage(String id){
-        Api api = new Api(this, new OnNetRequest(this,true,"请稍等") {
+    public void deletePackage(String id) {
+        Api api = new Api(this, new OnNetRequest(this, true, "请稍等") {
             @Override
             public void onSuccess(String msg) {
-                PackageResponseBean responseBean = JSONUtils.fromJson(msg, PackageResponseBean.class);
+                RetailOrderPackBean responseBean = JSONUtils.fromJson(msg, RetailOrderPackBean.class);
                 if (responseBean != null && responseBean.result != null) {
                     if (responseBean.result.size() == 0) {
-                        UIHelper.showShortToast(SaleSendDetailActivity.this, "该订单下无发货码单");
+                        UIHelper.showShortToast(SaleSendDetailActivity.this, "该零售单下无码单");
                     }
                     UIHelper.showShortToast(SaleSendDetailActivity.this, "删除成功");
                     adapter.refresh(responseBean.result);
                 } else {
-                    UIHelper.showShortToast(SaleSendDetailActivity.this, "该订单下无发货码单");
+                    UIHelper.showShortToast(SaleSendDetailActivity.this, "该零售单下无码单");
                 }
-                txtvCount.setText(adapter.getTotalCount());
+                txtvAllWeight.setText(adapter.getAllWeight());
+                txtvCount.setText(adapter.getAllVolumeAndQuantity());
             }
 
             @Override
             public void onFail() {
-                txtvCount.setText(adapter.getTotalCount());
+                txtvAllWeight.setText(adapter.getAllWeight());
+                txtvCount.setText(adapter.getAllVolumeAndQuantity());
             }
         });
         api.deletePackage(id);
@@ -202,25 +227,47 @@ public class SaleSendDetailActivity extends BaseActivity {
         Api api = new Api(this, new OnNetRequest(this, true, "正在加载...") {
             @Override
             public void onSuccess(String msg) {
-                PackageResponseBean responseBean = JSONUtils.fromJson(msg, PackageResponseBean.class);
+                RetailOrderPackBean responseBean = JSONUtils.fromJson(msg, RetailOrderPackBean.class);
                 if (responseBean != null && responseBean.result != null) {
                     if (responseBean.result.size() == 0) {
-                        UIHelper.showShortToast(SaleSendDetailActivity.this, "该订单下无发货码单");
+                        UIHelper.showShortToast(SaleSendDetailActivity.this, "该零售单下无码单");
                     }
                     adapter.refresh(responseBean.result);
                 } else {
-                    UIHelper.showShortToast(SaleSendDetailActivity.this, "该订单下无发货码单");
+                    UIHelper.showShortToast(SaleSendDetailActivity.this, "该零售单下无码单");
                 }
-                txtvCount.setText(adapter.getTotalCount());
+                txtvAllWeight.setText(adapter.getAllWeight());
+                txtvCount.setText(adapter.getAllVolumeAndQuantity());
             }
 
             @Override
             public void onFail() {
-                txtvCount.setText(adapter.getTotalCount());
+                txtvAllWeight.setText(adapter.getAllWeight());
+                txtvCount.setText(adapter.getAllVolumeAndQuantity());
             }
         });
-        api.getPackageList(orderId);
+        api.getRetailOrderPackList(orderId);
     }
+
+    /**
+     * 审核
+     */
+    public void submitRetailOrder(){
+        Api api = new Api(this, new OnNetRequest(this, true, "正在提交审核...") {
+            @Override
+            public void onSuccess(String msg) {
+                UIHelper.showShortToast(SaleSendDetailActivity.this, "成功提交审核");
+                finish();
+            }
+
+            @Override
+            public void onFail() {
+
+            }
+        });
+        api.submitRetailOrder(mRetailOrder.id);
+    }
+
 
     public void requestScanFocus() {
         etScanCode.requestFocus();
@@ -229,54 +276,43 @@ public class SaleSendDetailActivity extends BaseActivity {
 
 
     class PackageListAdapter extends BaseAdapter {
-        List<PackageBean> packageBeanList = new ArrayList<>();
+        List<RetailOrderPackBean.Result> packageBeanList = new ArrayList<>();
 
-        public String getTotalCount(){
-            int volumeCount = 0;//匹数
-            double quantityCount = 0;//数量
-            for(PackageBean packageBean:packageBeanList){
-                if(!TextUtils.isEmpty(packageBean.volume)){
-                    volumeCount += Integer.parseInt(packageBean.volume);
-                }
-                if(!TextUtils.isEmpty(packageBean.quantity)){
-                    quantityCount += Double.parseDouble(packageBean.quantity);
+        public String getAllWeight() {
+            BigDecimal allWeightBD = new BigDecimal("0");
+            for (RetailOrderPackBean.Result result : packageBeanList) {
+                String weight = result.weight;
+                if (!TextUtils.isEmpty(weight)) {
+                    BigDecimal weightBD = new BigDecimal(weight);
+                    allWeightBD = allWeightBD.add(weightBD);
                 }
             }
-//            volumeCount=((int)(volumeCount*100))/100.0;
-            quantityCount=((int)(quantityCount*100))/100.0;
-//            String vcText = "";
-            String qcText = "";
-//            if(volumeCount == 0){
-//                vcText = "0";
-//            }else{
-//                vcText = volumeCount+"";
-//            }
-            if(quantityCount == 0){
-                qcText = "0";
-            }else{
-                qcText = quantityCount+"";
-            }
-//            if(vcText.contains(".")){
-//                String[] vcTextArray = vcText.split(".");
-//                if(vcTextArray.length == 2){
-//                    if(vcTextArray[1].equals("00")||vcTextArray[1].equals("0")){
-//                        vcText = vcTextArray[0];
-//                    }
-//                }
-//            }
-            if(qcText.contains(".")){
-                String[] qcTextArray = qcText.split(".");
-                if(qcTextArray.length == 2){
-                    if(qcTextArray[1].equals("00")||qcTextArray[1].equals("0")){
-                        qcText = qcTextArray[0];
-                    }
+            String allW = MUtils.subZeroAndDot(allWeightBD.toString());
+            return TextUtils.isEmpty(allW)?"0":allW + "公斤";
+        }
+
+        public String getAllVolumeAndQuantity() {
+            BigDecimal allVolumeBD = new BigDecimal("0");
+            BigDecimal allQuantityBD = new BigDecimal("0");
+            for (RetailOrderPackBean.Result result : packageBeanList) {
+                String volume = result.volume;
+                if (!TextUtils.isEmpty(volume)) {
+                    BigDecimal volumeBD = new BigDecimal(volume);
+                    allVolumeBD = allVolumeBD.add(volumeBD);
+                }
+                String quantity = result.quantity;
+                if (!TextUtils.isEmpty(quantity)) {
+                    BigDecimal quantityBD = new BigDecimal(quantity);
+                    allQuantityBD = allQuantityBD.add(quantityBD);
                 }
             }
-            return "[ " + volumeCount + "匹 : "+ qcText + " 公斤]";
+            String allV = MUtils.subZeroAndDot(allVolumeBD.toString());
+            String allQ = MUtils.subZeroAndDot(allQuantityBD.toString());
+            return TextUtils.isEmpty(allV)?"0":allV + "匹/" + (TextUtils.isEmpty(allQ)?"0":allQ)+"卷";
         }
 
 
-        public void refresh(List<PackageBean> ls) {
+        public void refresh(List<RetailOrderPackBean.Result> ls) {
             if (ls == null) {
                 ls = new ArrayList<>();
             }
@@ -311,23 +347,23 @@ public class SaleSendDetailActivity extends BaseActivity {
                 convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.listitem_package, null);
                 viewHolder = new ViewHolder(convertView);
                 convertView.setTag(viewHolder);
-            }else{
-                viewHolder = (ViewHolder)convertView.getTag();
+            } else {
+                viewHolder = (ViewHolder) convertView.getTag();
             }
-            final PackageBean packageBean = packageBeanList.get(position);
-            viewHolder.txtvBarcode.setText(packageBean.barcode);
-            viewHolder.txtvBale.setText(packageBean.bale);
-            viewHolder.txtvVolume.setText(packageBean.volume);
+            final RetailOrderPackBean.Result packageBean = packageBeanList.get(position);
+            viewHolder.txtvBarCode.setText(packageBean.barcode);
+            viewHolder.txtvColor.setText(packageBean.color);
+            viewHolder.txtvCraft.setText(packageBean.craft);
+            viewHolder.txtvMaterial.setText(packageBean.material);
             viewHolder.txtvQuantity.setText(packageBean.quantity);
-            viewHolder.txtvReel.setText(packageBean.reel);
-            viewHolder.txtvLot.setText(packageBean.lot);
-            viewHolder.txtvGrade.setText(packageBean.grade);
+            viewHolder.txtvVolume.setText(packageBean.volume);
+
             viewHolder.txtvDelete.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     final String barCode = packageBean.barcode;
                     AlertDialog.Builder builder = new AlertDialog.Builder(SaleSendDetailActivity.this);
-                    builder.setMessage("是否确认删除此发货码单\n"+ barCode +"?");
+                    builder.setMessage("是否确认删除此发货码单\n" + barCode + "?");
                     builder.setTitle("提示");
                     builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
                         @Override
@@ -345,38 +381,38 @@ public class SaleSendDetailActivity extends BaseActivity {
             return convertView;
         }
     }
+
     static class ViewHolder {
-        @Bind(R.id.txtv_barcode)
-        TextView txtvBarcode;
-        @Bind(R.id.txtv_bale)
-        TextView txtvBale;
-        @Bind(R.id.txtv_volume)
-        TextView txtvVolume;
-        @Bind(R.id.txtv_quantity)
-        TextView txtvQuantity;
-        @Bind(R.id.txtv_reel)
-        TextView txtvReel;
-        @Bind(R.id.txtv_lot)
-        TextView txtvLot;
-        @Bind(R.id.txtv_grade)
-        TextView txtvGrade;
         @Bind(R.id.txtvDelete)
         TextView txtvDelete;
+        @Bind(R.id.txtvBarCode)
+        TextView txtvBarCode;
+        @Bind(R.id.txtvQuantity)
+        TextView txtvQuantity;
+        @Bind(R.id.txtvMaterial)
+        TextView txtvMaterial;
+        @Bind(R.id.txtvColor)
+        TextView txtvColor;
+        @Bind(R.id.txtvVolume)
+        TextView txtvVolume;
+        @Bind(R.id.txtvCraft)
+        TextView txtvCraft;
 
         ViewHolder(View view) {
             ButterKnife.bind(this, view);
         }
     }
 
+
     @Subscribe(priority = 2)
-    public void OnScanResultEvent(final ScanResultEvent event){
+    public void OnScanResultEvent(final ScanResultEvent event) {
         EventBus.getDefault().cancelEventDelivery(event);
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                if(inputDialog==null||!inputDialog.isShowing()){
+                if (inputDialog == null || !inputDialog.isShowing()) {
                     etScanCode.setText(event.getResult());
-                    addPackage();
+                    addPackage("");
                 }
             }
         });

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.joe.app.outbound.ui.activity.SelectRetailCustomerActivity">
+    <include layout="@layout/actionbar_title"></include>
+    <com.joe.app.outbound.ui.widget.ClearEditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:hint="输入关键字"
+        android:background="@drawable/search_edittext_bg"
+        android:layout_margin="5dp"
+        android:gravity="center_vertical"
+        android:paddingLeft="8dp"
+        android:paddingRight="5dp"
+        android:drawableLeft="@mipmap/icon_search"
+        android:drawablePadding="5dp"
+        />
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="5dp"
+        ></ListView>
+</LinearLayout>

@@ -12,7 +12,7 @@ import com.joe.app.outbound.MyApplication;
  * Email-joe_zong@163.com
  */
 public class SharedPreference {
-    public static final SharedPreferences mSharedPreference = MyApplication.getInstance().getSharedPreferences("OutboundPreferences", Context.MODE_PRIVATE);
+    public static final SharedPreferences mSharedPreference = MyApplication.getInstance().getSharedPreferences("OutboundPreferences_retail", Context.MODE_PRIVATE);
 
     public static final String EmplyeeId = ".employee_id";
     public static String getEmplyeeId(){

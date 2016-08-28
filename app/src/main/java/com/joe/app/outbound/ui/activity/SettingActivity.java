@@ -45,7 +45,7 @@ public class SettingActivity extends BaseActivity {
         }
         SharedPreference.setHost(host);
         UIHelper.showShortToast(SettingActivity.this, "更改成功");
-        EventBus.getDefault().post(new HostChangeEvent());
+//        EventBus.getDefault().post(new HostChangeEvent());
         finish();
     }
 }

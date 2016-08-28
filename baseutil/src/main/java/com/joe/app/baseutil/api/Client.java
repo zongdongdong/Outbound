@@ -63,7 +63,31 @@ public class Client {
         if(params!=null){
             getBuilder.params(params);
         }
-       getBuilder.build()
+        getBuilder.build()
+                .execute(callback);
+    }
+
+    public void cancelTag(Object tag){
+        OkHttpUtils.getInstance().cancelTag(tag);
+    }
+
+    /**
+     * get 请求
+     * @param method
+     * @param params
+     * @param callback
+     */
+    public void get(String method, Map<String, String> params, Object tag, OnRequestCallback callback){
+        GetBuilder getBuilder = OkHttpUtils.get();
+        getBuilder.url(host + method);
+        if(!TextUtils.isEmpty(token)){
+            getBuilder.addHeader(tokenKey, token);
+        }
+        if(params!=null){
+            getBuilder.params(params);
+        }
+        getBuilder.tag(tag);
+        getBuilder.build()
                 .execute(callback);
     }
 

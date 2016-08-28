@@ -6,6 +6,7 @@
     android:background="@color/content_bg"
     tools:context="com.joe.app.outbound.ui.activity.SaleSendDetailActivity">
     <include layout="@layout/actionbar_title"></include>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,19 +19,17 @@
             android:layout_height="wrap_content"
             >
             <TextView
-                android:id="@+id/txtv_material"
+                android:id="@+id/txtvCustomerName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0007／20D400T涤塔夫"
                 android:textColor="@color/black"
                 android:layout_centerVertical="true"
                 />
 
             <TextView
-                android:id="@+id/txtv_color"
+                android:id="@+id/txtvAllWeight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="H0005／天蓝"
                 android:textColor="@color/black"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
@@ -41,12 +40,32 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="right"
-            android:layout_marginTop="3dp"
+            android:layout_marginTop="5dp"
             >
-            <TextView
-                android:id="@+id/txtvCompanyName"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/llFullVolume"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                >
+                <TextView
+                    android:id="@+id/txtvCheckImage"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:background="@mipmap/icon_check_checked"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="整卷"
+                    android:layout_marginLeft="5dp"
+                    />
+            </LinearLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
                 android:layout_weight="1"
                 android:textColor="@color/black"
                 />
@@ -54,25 +73,11 @@
                 android:id="@+id/txtvCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="[0:0]"
                 android:textColor="@color/black"
-                />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" / "
-                android:textColor="@color/black"
-                />
-            <TextView
-                android:id="@+id/txtv_plan_quantity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="1000"
-                android:textColor="@color/black"
-                android:layout_centerVertical="true"
                 />
         </LinearLayout>
     </LinearLayout>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
@@ -92,19 +97,6 @@
         android:background="@color/white"
         android:padding="10dp"
         >
-        <TextView
-            android:id="@+id/txtvPackageNum"
-            android:layout_width="60dp"
-            android:layout_height="30dp"
-            android:hint="包号"
-            android:textColor="@color/black"
-            android:paddingLeft="2dp"
-            android:paddingRight="2dp"
-            android:background="@drawable/edittext_line_bg"
-            android:gravity="center_vertical"
-            android:textSize="15sp"
-            android:singleLine="true"
-            />
         <com.joe.app.outbound.ui.widget.ClearEditText
             android:id="@+id/etScanCode"
             android:layout_width="match_parent"
@@ -142,10 +134,21 @@
         android:background="@color/view_line"
         android:layout_marginTop="10dp"
         ></View>
+
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/white"
+        android:layout_weight="1"
+        android:divider="@color/view_line"
+        android:dividerHeight="1dp"
         ></ListView>
+
+    <Button
+        android:id="@+id/btnSubmit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="审核"
+        />
 </LinearLayout>

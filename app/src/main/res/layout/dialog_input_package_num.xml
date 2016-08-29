@@ -13,6 +13,7 @@
         android:layout_margin="10dp"
         android:padding="5dp"
         android:hint="数量"
+        android:imeOptions="actionDone"
         />
     <TextView
         android:id="@+id/txtvConfirm"

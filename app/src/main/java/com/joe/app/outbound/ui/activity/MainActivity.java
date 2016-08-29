@@ -234,6 +234,7 @@ public class MainActivity extends BaseActivity {
      */
     private void getRetailOrderListWithEmployeeId(String employeeId, boolean isShowing) {
         if (TextUtils.isEmpty(employeeId) || "-1".equals(employeeId)) {
+            adapter.refresh(null);
             return;
         }
         Api api = new Api(this, new OnNetRequest(this, isShowing, "正在加载...") {

@@ -97,6 +97,7 @@
         android:background="@color/white"
         android:padding="10dp"
         >
+
         <com.joe.app.outbound.ui.widget.ClearEditText
             android:id="@+id/etScanCode"
             android:layout_width="match_parent"
@@ -110,7 +111,9 @@
             android:paddingRight="10dp"
             android:textSize="15sp"
             android:singleLine="true"
+            android:imeOptions="actionDone"
             ></com.joe.app.outbound.ui.widget.ClearEditText>
+
         <TextView
             android:id="@+id/txtvConfirm"
             android:layout_width="50dp"

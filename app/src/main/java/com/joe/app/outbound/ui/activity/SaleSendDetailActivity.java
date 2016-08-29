@@ -6,9 +6,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -96,6 +99,26 @@ public class SaleSendDetailActivity extends BaseActivity {
 //            txtvCount.setText(adapter.getTotalCount());
             getPackageList(mRetailOrder.id);
         }
+
+        etScanCode.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE ||
+                        (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                    switch (event.getAction()) {
+                        case KeyEvent.ACTION_UP:
+                            //发送请求
+                            Log.i("addPackage","onEditorAction:"+actionId);
+                            MUtils.hideSoftInput(SaleSendDetailActivity.this);
+                            addPackage("");
+                            return true;
+                        default:
+                            return true;
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     @OnClick(R.id.txtvLeft)
@@ -106,12 +129,12 @@ public class SaleSendDetailActivity extends BaseActivity {
     @OnClick(R.id.txtvConfirm)
     public void onConfirmClickListener() {
         MUtils.hideSoftInput(SaleSendDetailActivity.this);
-        addPackage(null);
+        addPackage("");
     }
 
     @OnClick(R.id.btnSubmit)
-    public void onSubmitClickListener(){
-        if(adapter.getCount() == 0){
+    public void onSubmitClickListener() {
+        if (adapter.getCount() == 0) {
             UIHelper.showLongToast(this, "该零售单无码单，无法提交审核");
             return;
         }
@@ -143,12 +166,12 @@ public class SaleSendDetailActivity extends BaseActivity {
     //添加出库单
     public void addPackage(String quantity) {
         String barcode = etScanCode.getText().toString().trim();
-        if(TextUtils.isEmpty(barcode)){
-            UIHelper.showLongToast(this,"请输入条码");
+        if (TextUtils.isEmpty(barcode)) {
+            UIHelper.showLongToast(this, "请输入条码");
             return;
         }
 
-        if(!isFullVolume && TextUtils.isEmpty(quantity)){
+        if (!isFullVolume && TextUtils.isEmpty(quantity)) {
             inputDialog = new InputPackageNumDialog(SaleSendDetailActivity.this, "");
             inputDialog.show();
             inputDialog.setOnInputListener(new InputPackageNumDialog.OnInputListener() {
@@ -252,7 +275,7 @@ public class SaleSendDetailActivity extends BaseActivity {
     /**
      * 审核
      */
-    public void submitRetailOrder(){
+    public void submitRetailOrder() {
         Api api = new Api(this, new OnNetRequest(this, true, "正在提交审核...") {
             @Override
             public void onSuccess(String msg) {
@@ -288,7 +311,7 @@ public class SaleSendDetailActivity extends BaseActivity {
                 }
             }
             String allW = MUtils.subZeroAndDot(allWeightBD.toString());
-            return TextUtils.isEmpty(allW)?"0":allW + "公斤";
+            return TextUtils.isEmpty(allW) ? "0" : allW + "公斤";
         }
 
         public String getAllVolumeAndQuantity() {
@@ -308,7 +331,7 @@ public class SaleSendDetailActivity extends BaseActivity {
             }
             String allV = MUtils.subZeroAndDot(allVolumeBD.toString());
             String allQ = MUtils.subZeroAndDot(allQuantityBD.toString());
-            return TextUtils.isEmpty(allV)?"0":allV + "匹/" + (TextUtils.isEmpty(allQ)?"0":allQ)+"卷";
+            return TextUtils.isEmpty(allV) ? "0" : allV + "/" + (TextUtils.isEmpty(allQ) ? "0" : allQ);
         }
 
 

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -11,11 +13,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.joe.app.baseutil.util.MUtils;
 import com.joe.app.outbound.R;
+import com.joe.app.outbound.ui.activity.SaleSendDetailActivity;
 import com.joe.app.outbound.ui.widget.ClearEditText;
 
 import butterknife.Bind;
@@ -67,11 +71,13 @@ public class InputPackageNumDialog extends Dialog {
             @Override
             public void onClick(View v) {
                 String value = etPackageNum.getText().toString().trim();
-                if(onInputListener!=null) {
-                    onInputListener.input(value);
+                if(!TextUtils.isEmpty(value)){
+                    if(onInputListener!=null) {
+                        onInputListener.input(value);
+                    }
+                    MUtils.hideSoftInputOfView(mContext,etPackageNum);
+                    dismiss();
                 }
-                MUtils.hideSoftInputOfView(mContext,etPackageNum);
-                dismiss();
             }
         });
 
@@ -82,6 +88,32 @@ public class InputPackageNumDialog extends Dialog {
                     onInputListener.dismiss();
                 }
                 MUtils.hideSoftInputOfView(mContext,etPackageNum);
+            }
+        });
+
+        etPackageNum.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE ||
+                        (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                    switch (event.getAction()) {
+                        case KeyEvent.ACTION_UP:
+                            //发送请求
+//                            Log.i("addPackage","onEditorAction:"+actionId);
+                            String value = etPackageNum.getText().toString().trim();
+                            if(!TextUtils.isEmpty(value)){
+                                if(onInputListener!=null) {
+                                    onInputListener.input(value);
+                                }
+                                MUtils.hideSoftInputOfView(mContext,etPackageNum);
+                                dismiss();
+                            }
+                            return true;
+                        default:
+                            return true;
+                    }
+                }
+                return false;
             }
         });
     }
